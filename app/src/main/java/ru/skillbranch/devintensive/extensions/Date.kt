@@ -26,7 +26,9 @@ fun Date.add(value: Long, units: TimeUnits): Date {
 }
 
 // TODO
-fun Date.humanizeDiff() {}
+fun Date.humanizeDiff(): String {
+    return "только что"
+}
 
 enum class TimeUnits {
     SECOND,
