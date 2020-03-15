@@ -1,6 +1,5 @@
 package ru.skillbranch.devintensive.models
 
-import java.lang.IllegalArgumentException
 import java.util.Date
 
 abstract class BaseMessage(
@@ -14,7 +13,7 @@ abstract class BaseMessage(
     abstract fun formatMessage(): String
 
     companion object AbstractFactory {
-        private var lastId = 0;
+        private var lastId = -1;
 
         fun makeMessage(
             from: User?,
