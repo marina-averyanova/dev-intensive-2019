@@ -3,7 +3,11 @@ package ru.skillbranch.devintensive.extensions
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeUnit.MILLISECONDS
+import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeUnit.MINUTES
+import java.util.concurrent.TimeUnit.HOURS
+import java.util.concurrent.TimeUnit.DAYS
 import kotlin.math.abs
 
 fun Date.format(pattern: String = "HH:mm:ss dd.MM.yy"): String {
@@ -17,10 +21,10 @@ fun Date.add(value: Long, units: TimeUnits): Date {
 
     time += when (units) {
         TimeUnits.MILLISECOND -> value
-        TimeUnits.SECOND -> TimeUnit.SECONDS.toMillis(value)
-        TimeUnits.MINUTE -> TimeUnit.MINUTES.toMillis(value)
-        TimeUnits.HOUR -> TimeUnit.HOURS.toMillis(value)
-        TimeUnits.DAY -> TimeUnit.DAYS.toMillis(value)
+        TimeUnits.SECOND -> SECONDS.toMillis(value)
+        TimeUnits.MINUTE -> MINUTES.toMillis(value)
+        TimeUnits.HOUR -> HOURS.toMillis(value)
+        TimeUnits.DAY -> DAYS.toMillis(value)
     }
     this.time = time
 
@@ -36,79 +40,66 @@ fun Date.humanizeDiff(): String {
     }
 
     return when {
-        dateDiff < TimeUnit.SECONDS.toMillis(1) -> "только что"
-        dateDiff < TimeUnit.SECONDS.toMillis(45) ->  {
+        dateDiff < SECONDS.toMillis(1) -> "только что"
+        dateDiff < SECONDS.toMillis(45) ->
             resolvePastFutureDependentValue(isFuture, "несколько секунд")
-        }
-        dateDiff < TimeUnit.SECONDS.toMillis(75) -> {
+        dateDiff < SECONDS.toMillis(75) ->
             resolvePastFutureDependentValue(isFuture, "минуту")
+        dateDiff < MINUTES.toMillis(45) -> {
+            val diffInMinutes = getValueOrMin(MILLISECONDS.toMinutes(dateDiff), 2)
+            resolvePastFutureDependentValue(isFuture, TimeUnits.MINUTE.plural(diffInMinutes))
         }
-        dateDiff < TimeUnit.MINUTES.toMillis(45) -> {
-            val diffInMinutes = getValueOrMin(TimeUnit.MILLISECONDS.toMinutes(dateDiff), 2)
-            resolvePastFutureDependentValue(
-                isFuture,
-                TimeUnits.stringifyValue(TimeUnits.MINUTE, diffInMinutes)
-            )
-        }
-        dateDiff < TimeUnit.MINUTES.toMillis(75) -> {
+        dateDiff < MINUTES.toMillis(75) ->
             resolvePastFutureDependentValue(isFuture, "час")
+        dateDiff < HOURS.toMillis(22) -> {
+            val diffInHours = getValueOrMin(MILLISECONDS.toHours(dateDiff), 2)
+            resolvePastFutureDependentValue(isFuture, TimeUnits.HOUR.plural(diffInHours))
         }
-        dateDiff < TimeUnit.HOURS.toMillis(22) -> {
-            val diffInHours = getValueOrMin(TimeUnit.MILLISECONDS.toHours(dateDiff), 2)
-            resolvePastFutureDependentValue(
-                isFuture,
-                TimeUnits.stringifyValue(TimeUnits.HOUR, diffInHours)
-            )
-        }
-        dateDiff < TimeUnit.HOURS.toMillis(26) -> {
+        dateDiff < HOURS.toMillis(26) ->
             resolvePastFutureDependentValue(isFuture, "день")
-        }
-        dateDiff < TimeUnit.DAYS.toMillis(360) -> {
-            val diffInDays = getValueOrMin(TimeUnit.MILLISECONDS.toDays(dateDiff), 2)
-            resolvePastFutureDependentValue(
-                isFuture,
-                TimeUnits.stringifyValue(TimeUnits.DAY, diffInDays)
-            )
+        dateDiff < DAYS.toMillis(360) -> {
+            val diffInDays = getValueOrMin(MILLISECONDS.toDays(dateDiff), 2)
+            resolvePastFutureDependentValue(isFuture, TimeUnits.DAY.plural(diffInDays))
         }
         else -> if (isFuture) "более чем через год" else "более года назад"
     }
 }
 
 enum class TimeUnits {
-    MILLISECOND,
-    SECOND,
-    MINUTE,
-    HOUR,
-    DAY;
+    MILLISECOND {
+       override fun plural(value: Long) =
+           stringifyValue(value, listOf("миллисекунд", "миллисекунду", "миллисекунды"))
+    },
+    SECOND {
+        override fun plural(value: Long) =
+            stringifyValue(value, listOf("секунд", "секунду", "секунды"))
+    },
+    MINUTE {
+        override fun plural(value: Long) =
+            stringifyValue(value, listOf("минут", "минуту", "минуты"))
+    },
+    HOUR {
+        override fun plural(value: Long) =
+            stringifyValue(value, listOf("часов", "час", "часа"))
+    },
+    DAY {
+        override fun plural(value: Long) =
+            stringifyValue(value, listOf("дней", "день", "дня"))
+    };
 
-    companion object {
-        private val stringForms = mapOf(
-            Pair(MINUTE, listOf("минут", "минуту", "минуты")),
-            Pair(HOUR, listOf("часов", "час", "часа")),
-            Pair(DAY, listOf("дней", "день", "дня"))
-        )
+    abstract fun plural(value: Long): String
 
-        private class TimeUnitEndRange(private val value: Int) {
-            fun zero() = value == 0
-            fun one() = value == 1
-            fun lessThenFive() = value in 2..4
-            fun fiveAndMore() = value in 5..9
+
+    internal fun stringifyValue(timeUnitValue: Long, stringForms: List<String>): String {
+        val timeUnitString = when (timeUnitValue.toString().takeLast(1).toInt()) {
+            0, in 5..9 -> stringForms[0]
+            1 -> stringForms[1]
+            in 2..4 -> stringForms[2]
+            else -> ""
         }
-
-        fun stringifyValue(timeUnit: TimeUnits, timeUnitValue: Long): String {
-            val timeUnitEndRange = TimeUnitEndRange(timeUnitValue.toString().takeLast(1).toInt())
-            val timeUnitString = if (stringForms.containsKey(timeUnit)) {
-                when {
-                    timeUnitEndRange.zero() || timeUnitEndRange.fiveAndMore() -> stringForms[timeUnit]?.get(0)
-                    timeUnitEndRange.one() -> stringForms[timeUnit]?.get(1)
-                    timeUnitEndRange.lessThenFive() -> stringForms[timeUnit]?.get(2)
-                    else -> ""
-                }
-            } else ""
-            return "$timeUnitValue $timeUnitString"
-
-        }
+        return "$timeUnitValue $timeUnitString"
     }
+
 }
 
 private fun resolvePastFutureDependentValue(futureCondition: Boolean, value: String): String {
