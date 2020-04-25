@@ -21,9 +21,13 @@ class ProfileViewModel: ViewModel() {
         Log.d("M_ProfileViewModel", "profile model view cleared")
     }
 
-    fun getProfileData(): LiveData<Profile> = profileData
+    fun getProfileData(): LiveData<Profile> {
+        Log.d("M_ProfileViewModel", "get profile data $profileData")
+        return profileData
+    }
 
     fun saveProfileData(profile: Profile) {
+        Log.d("M_ProfileViewModel", "profile in view model: $profile")
         repository.saveProfile(profile)
         profileData.value = profile
     }

@@ -99,7 +99,10 @@ class ProfileActivity : AppCompatActivity() {
             "respect" to tv_respect
         )
 
+        Log.d("M_ProfileActivity", "viewFields $viewFields")
+
         isEditMode = savedInstanceState?.getBoolean(IS_EDIT_MODE, false) ?: false
+        Log.d("M_ProfileActivity", "isEditMode $isEditMode")
         showCurrentMode(isEditMode)
 
         btn_edit.setOnClickListener {
@@ -147,11 +150,12 @@ class ProfileActivity : AppCompatActivity() {
 
     private fun saveProfileInfo() {
         Profile(
-            firstName = et_first_name.toString(),
-            lastName = et_last_name.toString(),
-            about = et_about.toString(),
-            repository = et_repository.toString()
+            firstName = et_first_name.text.toString(),
+            lastName = et_last_name.text.toString(),
+            about = et_about.text.toString(),
+            repository = et_repository.text.toString()
         ).apply {
+            Log.d("M_ProfileActivity", "profile: $this")
             viewModel.saveProfileData(this)
         }
     }
