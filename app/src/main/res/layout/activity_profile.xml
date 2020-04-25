@@ -29,7 +29,7 @@
                 android:layout_width="@dimen/btn_round_size_40"
                 android:layout_height="@dimen/btn_round_size_40"
                 android:background="@drawable/btn_round_bg"
-                android:src="@drawable/ic_brightness_high_black_24dp"
+                android:src="@drawable/ic_switch_day_night"
                 android:layout_toLeftOf="@id/iv_avatar"
                 android:layout_marginRight="@dimen/spacing_huge_32"
                 android:layout_marginTop="36dp"/>
@@ -76,7 +76,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/color_primary_light">
+        android:background="?attr/colorAccentedSurface">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -185,7 +185,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginLeft="@dimen/space_maximum_72"
-        android:background="@color/color_divider_dark" />
+        android:background="?attr/colorDivider" />
 
     <LinearLayout
         style="@style/Profile.InfoItem"
@@ -219,7 +219,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginLeft="@dimen/space_maximum_72"
-        android:background="@color/color_divider_dark" />
+        android:background="?attr/colorDivider" />
 
     <LinearLayout
         style="@style/Profile.InfoItem"
